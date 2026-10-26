@@ -173,6 +173,22 @@ def transform(x: np.ndarray, params: dict) -> np.ndarray:
     return features
 
 
+def add_bias(tx):
+    """
+    Add a constant one bias column for the features
+
+    Args:
+        tx (np.array): preprocessed features
+
+    Returns:
+        tx_bias (np.array): preprocessed features with a bias
+    """
+    ones = np.ones((tx.shape[0], 1)) # give the size ()
+    tx_bias = np.concatenate([ones, tx], axis=1)
+
+    return tx_bias
+
+
 def special_codes(name: str, column: np.ndarray) -> dict:
     """Codes to replace in one column, from its name or its largest value."""
     if name in SPECIAL_CODES:
