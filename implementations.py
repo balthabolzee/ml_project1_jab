@@ -12,12 +12,11 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
 
         e = y - tx @ w
-        mse = 1 / (2*len(e)) * e.T @ e
-        grad_mse = - 1 / len(e) * tx.T @ e
-        
+        grad_mse = - 1 / len(e) * tx.T @ e  
         w = w - gamma * grad_mse
 
-    loss = mse
+    e = y - tx @ w    
+    loss = 1 / (2*len(e)) * e.T @ e
 
     return w, loss
 
@@ -26,24 +25,25 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
 
 
 
-def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
+def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma, rng=None):
     """Linear regression with SGD (batch size 1). Returns (w, loss)."""
+
+    if rng is None:
+        rng = np.random.default_rng()   # created once, before the loop
 
     w = initial_w
 
     for n_iter in range(max_iters):
 
-        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1, num_batches=1):
-
-            e = y - tx @ w
-            mse = 1 / (2*len(e)) * e.T @ e
+        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1, num_batches=1, rng=rng):       
 
             stochastic_e = y_batch - tx_batch @ w
-            grad_mse = - 1 / len(stochastic_e) * tx.T @ stochastic_e
+            grad_mse = - 1 / len(stochastic_e) * tx_batch.T @ stochastic_e
             
             w = w - gamma * grad_mse
 
-    loss = mse
+    e = y - tx @ w
+    loss= 1 / (2*len(e)) * e.T @ e
 
     return w, loss
 

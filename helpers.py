@@ -26,7 +26,7 @@ def load_csv_data(data_path, sub_sample=False):
         delimiter=",",
         skip_header=1,
         dtype=int,
-        usecols=1,
+        usecols=(1, ),
     )
     x_train = np.genfromtxt(
         os.path.join(data_path, "x_train.csv"), delimiter=",", skip_header=1
@@ -75,7 +75,7 @@ def create_csv_submission(ids, y_pred, name):
 
 
 
-def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
+def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True, rng=None):
     """
     Generate a minibatch iterator for a dataset.
     Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
@@ -104,10 +104,18 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
 
     Disclaimer: To keep this function simple, individual datapoints are not shuffled. For a more random result consider using a batch_size of 1.
 
+    Args:
+        rng (np.random.Generator, optional): random generator used when shuffle is True,
+            e.g. np.random.default_rng(42) for reproducible batches. If None, a new
+            unseeded generator is created (batches change at every call).
+
     Example of use :
     for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
         <DO-SOMETHING>
     """
+    if rng is None:
+        rng = np.random.default_rng()  # no generator given: a new, unseeded one
+
     data_size = len(y)  # NUmber of data points.
     batch_size = min(data_size, batch_size)  # Limit the possible size of the batch.
     max_batches = int(
@@ -119,10 +127,10 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
 
     if shuffle:
         # Generate an array of indexes indicating the start of each batch
-        idxs = np.random.randint(max_batches, size=num_batches) * batch_size
+        idxs = rng.integers(max_batches, size=num_batches) * batch_size
         if remainder != 0:
             # Add an random offset to the start of each batch to eventually consider the remainder points
-            idxs += np.random.randint(remainder + 1, size=num_batches)
+            idxs += rng.integers(remainder + 1, size=num_batches)
     else:
         # If no shuffle is done, the array of indexes is circular.
         idxs = np.array([i % max_batches for i in range(num_batches)]) * batch_size
@@ -133,3 +141,9 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             start_index + batch_size
         )  # The first data point of the following batch
         yield y[start_index:end_index], tx[start_index:end_index]
+
+
+
+def sigmoid(a):
+    return 1 / (1 + np.exp(-np.clip(a, -500, 500))) 
+
