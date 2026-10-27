@@ -47,7 +47,7 @@ def best_threshold(y_true, scores):
         best_t (float): threshold with the best F1 (predict 1 if score >= best_t)
         best_f1 (float): F1 obtained with that threshold
     """
-    thresholds = np.quantile(scores, np.linspace(0, 1, 101)) # different thresholds between 0 and 1 (steps of 0.01)
+    thresholds = np.quantile(scores, np.linspace(0, 1, 101)) # adaptative thresholds range between 0 and 1 (steps of 0.01)
 
     f1_scores = []
 

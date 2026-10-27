@@ -12,8 +12,8 @@ SEED = 42
 
 # TODO : Hyperparameters
 MODEL = "reg_logistic"
-PARAMS = {"lambda_": 1e-4, "gamma": 0.1, "max_iters": 500}
-THRESHOLD = 0.21          # mean best threshold from the CV, in the units of predict_scores
+PARAMS = {"lambda_": 1e-4, "gamma": 0.1, "max_iters": 1000}
+THRESHOLD = 0.20          # mean best threshold from the CV, in the units of predict_scores
 OUTPUT = "submissions/submission.csv"
 
 

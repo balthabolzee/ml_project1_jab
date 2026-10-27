@@ -29,7 +29,7 @@ def train_model(model, y, tx, params, rng=None):
     if model == "mse_gd":
         return implementations.mean_squared_error_gd(y, tx, initial_w, params["max_iters"], params["gamma"])
     if model == "mse_sgd":
-        return implementations.mean_squared_error_sgd(y, tx, initial_w, params["max_iters"], params["gamma"], rng=None)
+        return implementations.mean_squared_error_sgd(y, tx, initial_w, params["max_iters"], params["gamma"], rng=rng)
     if model == "logistic":
         return implementations.logistic_regression(y, tx, initial_w, params["max_iters"], params["gamma"])
     if model == "reg_logistic":
