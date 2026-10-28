@@ -3,7 +3,7 @@ sys.path.insert(0, "..")   # also look in the parent folder (the repo root)
 import numpy as np
 import helpers
 import preprocessing
-import models
+import implementations
 
 
 DATA_PATH = "./data"
@@ -202,10 +202,10 @@ def cross_validate(x, y, names, k_indices, model, params, rng=None, verbose=True
         tx_tr, tx_val = prepare_features(x_tr, x_val, names)
 
         # 3 - train
-        w, loss = models.train_model(model, y_tr, tx_tr, params, rng)
+        w, loss = implementations.train_model(model, y_tr, tx_tr, params, rng)
 
         # 4 - probabilities on the validation fold + best threshold
-        scores = models.predict_scores(model, tx_val, w)
+        scores = implementations.predict_scores(model, tx_val, w)
         best_t, best_f1 = best_threshold(y_val, scores)
 
         f1s.append(best_f1)
