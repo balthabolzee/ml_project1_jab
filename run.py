@@ -6,17 +6,24 @@ import implementations
 import cross_validation
 
 
-
 DATA_PATH = "./data"
 SEED = 42
 
 
 # TODO : Hyperparameters
 MODEL = "reg_logistic"
-PARAMS = {"lambda_": 1e-3, "gamma": 0.1, "max_iters": 1000, "poly_degree": 2, "poly_top": None, "inter_degree": 2, "inter_top": 20, "max_corr": 0.9}   # x² of all numerical columns + pairs of the 20 strongest features
-THRESHOLD = None                                   
-OUTPUT = "submissions/submission_test_poly2_inter20.csv"  
-
+PARAMS = {
+    "lambda_": 1e-3,
+    "gamma": 0.1,
+    "max_iters": 1000,
+    "poly_degree": 2,
+    "poly_top": None,
+    "inter_degree": 2,
+    "inter_top": 20,
+    "max_corr": 0.9,
+}  # x² of all numerical columns + pairs of the 20 strongest features
+THRESHOLD = None
+OUTPUT = "submissions/submission_test_poly2_inter20.csv"
 
 
 ## DATA LOADING
@@ -30,14 +37,20 @@ tx_tr = preprocessing.add_bias(preprocessing.transform(x_train, params_prep))
 tx_te = preprocessing.add_bias(preprocessing.transform(x_test, params_prep))
 
 ## FEATURE EXPANSION: the polynomial / interaction columns asked for in PARAMS (training statistics only)
-tx_tr, tx_te = cross_validation.expand_features(tx_tr, tx_te, y, MODEL, PARAMS, rng=np.random.default_rng(SEED))
+tx_tr, tx_te = cross_validation.expand_features(
+    tx_tr, tx_te, y, MODEL, PARAMS, rng=np.random.default_rng(SEED)
+)
 
 ## TRAINING
-w, loss = implementations.train_model(MODEL, y, tx_tr, PARAMS, rng=np.random.default_rng(SEED))
+w, loss = implementations.train_model(
+    MODEL, y, tx_tr, PARAMS, rng=np.random.default_rng(SEED)
+)
 
 ## THRESHOLD: chosen on the training rows
 if THRESHOLD is None:
-    THRESHOLD, _ = cross_validation.best_threshold(y, implementations.predict_scores(MODEL, tx_tr, w))
+    THRESHOLD, _ = cross_validation.best_threshold(
+        y, implementations.predict_scores(MODEL, tx_tr, w)
+    )
 
 ## PREDICTION
 scores = implementations.predict_scores(MODEL, tx_te, w)
