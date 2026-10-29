@@ -82,7 +82,7 @@
 | 78 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | 100k, 5-fold CV (folds D) | 42   | –          | 0.23      | 0.423 ± 0.008   | –          | **poly 3 all + inter 3 top 15**: vs #51 −0.005 |
 | 79 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | 100k, 5-fold CV (folds D) | 42   | –          | 0.22      | 0.429 ± 0.014   | –          | **poly 3 top 10 + inter 3 top 10**: vs #51 +0.001, noise (highest std) |
 | 80 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | 100k, 5-fold CV (folds D) | 42   | –          | 0.23      | 0.424 ± 0.010   | –          | **poly 3 top 10 + inter 3 top 15**: vs #51 −0.004. End of the expansion grid |
-| 81 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | full (328k), run.py (no validation) | 42   | 0.220      | 0.22      | –               | *to fill*  | **poly 2 all + inter 2 top 20** = config of #57 (349 → 624 columns). Threshold chosen on the training rows. 14,259 / 109,379 test rows predicted positive (13.0%); 2.2% of the predictions differ from run.py without expansion. `submissions/submission_poly2_inter20.csv` |
+| 81 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | full (328k), run.py (no validation) | 42   | 0.220      | 0.22      | –               | **0.443**  | **poly 2 all + inter 2 top 20** = config of #57 (349 → 624 columns). Threshold chosen on the training rows. 14,259 / 109,379 test rows predicted positive (13.0%); 2.2% of the predictions differ from run.py without expansion. `submissions/submission_poly2_inter20.csv` |
 | 82 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | 20k, 5-fold CV (folds H)  | 42   | –          | 0.23      | 0.430 ± 0.023   | –          | **no expansion** = reference for #83–102. 20k rows: std ~0.02, twice the 100k one. Same F1 in compare_configs |
 | 83 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | 20k, 5-fold CV (folds H)  | 42   | –          | 0.24      | 0.429 ± 0.020   | –          | **inter 2 top 10**: vs #82 −0.001, noise. Same F1 in compare_configs |
 | 84 | 28.10 | reg_logistic | 1e-3, 0.1, 1000      | 20k, 5-fold CV (folds H)  | 42   | –          | 0.25      | 0.426 ± 0.016   | –          | **inter 2 top 20**: vs #82 −0.004 |
@@ -117,7 +117,7 @@
   optimistic (about −0.001 on the same folds: #51 vs #49). The gap grows on small data: on 20k rows the
   validation-fold threshold would give +0.012 (#87).
 
-## Findings so far (28.10)
+## Findings so far
 - **Iterations**: 500–2000 all give the same F1 once γ·iters ≳ 50 (#9–11, #23–28).
 - **γ**: 0.01 is too slow at 1000 iters (#12); 0.05–0.5 all converge to the same F1.
 - **λ**: no effect up to 1e-2; 1e-1 hurts (−0.007, #20) → regularization not needed at this feature count.
@@ -130,9 +130,9 @@
   noise, but the large sets lose much more (−0.011 to −0.021, vs −0.003 to −0.005 at 100k) → the overfitting shrinks
   with more rows, so judge an expansion on ≥ 100k rows, not on 20k.
 - **Full data with x² + pairs of the top 20** (#81, config of #57): threshold 0.22, 13.0% of the test rows predicted
-  positive, 2.2% of the predictions changed vs no expansion. AIcrowd score: to fill.
+  positive, 2.2% of the predictions changed vs no expansion. **AIcrowd F1: 0.443**, above the CV estimate (0.429 ± 0.009).
 
-## Next steps (plan, 28.10)
+## Next steps
 
 **Keep a change only if it gains more than ~0.01**, or if it wins on **every fold** (see "How to compare" below).
 

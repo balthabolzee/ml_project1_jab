@@ -15,7 +15,7 @@ SEED = 42
 MODEL = "reg_logistic"
 PARAMS = {"lambda_": 1e-3, "gamma": 0.1, "max_iters": 1000, "poly_degree": 2, "poly_top": None, "inter_degree": 2, "inter_top": 20, "max_corr": 0.9}   # x² of all numerical columns + pairs of the 20 strongest features
 THRESHOLD = None                                   
-OUTPUT = "submissions/submission_poly2_inter20.csv"  
+OUTPUT = "submissions/submission_test_poly2_inter20.csv"  
 
 
 
