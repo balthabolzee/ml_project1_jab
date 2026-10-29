@@ -2,9 +2,6 @@ import numpy as np
 from helpers import batch_iter
 
 
-
-
-
 def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     """Linear regression with gradient descent. Returns (w, loss)."""
 
@@ -13,60 +10,52 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
 
         e = y - tx @ w
-        grad_mse = - 1 / len(e) * tx.T @ e  
+        grad_mse = -1 / len(e) * tx.T @ e
         w = w - gamma * grad_mse
 
-    e = y - tx @ w    
-    loss = 1 / (2*len(e)) * e.T @ e
+    e = y - tx @ w
+    loss = 1 / (2 * len(e)) * e.T @ e
 
     return w, loss
-
-
-
-
 
 
 def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma, rng=None):
     """Linear regression with SGD (batch size 1). Returns (w, loss)."""
 
     if rng is None:
-        rng = np.random.default_rng()   # created once, before the loop
+        rng = np.random.default_rng()  # created once, before the loop
 
     w = initial_w
 
     for n_iter in range(max_iters):
 
-        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1, num_batches=1, rng=rng):       
+        for y_batch, tx_batch in batch_iter(
+            y, tx, batch_size=1, num_batches=1, rng=rng
+        ):
 
             stochastic_e = y_batch - tx_batch @ w
-            grad_mse = - 1 / len(stochastic_e) * tx_batch.T @ stochastic_e
-            
+            grad_mse = -1 / len(stochastic_e) * tx_batch.T @ stochastic_e
+
             w = w - gamma * grad_mse
 
     e = y - tx @ w
-    loss= 1 / (2*len(e)) * e.T @ e
+    loss = 1 / (2 * len(e)) * e.T @ e
 
     return w, loss
-
-
-
 
 
 def least_squares(y, tx):
     """Least squares via normal equations (no np.linalg.lstsq)."""
-    
+
     a = tx.T.dot(tx)
     b = tx.T.dot(y)
     w = np.linalg.solve(a, b)
-    
+
     e = y - tx.dot(w)
     mse = 1 / 2 * np.mean(e**2)
     loss = mse
-    
+
     return w, loss
-
-
-
 
 
 def ridge_regression(y, tx, lambda_):
@@ -80,12 +69,8 @@ def ridge_regression(y, tx, lambda_):
     e = y - tx.dot(w)
     mse = 1 / 2 * np.mean(e**2)
     loss = mse
-    
+
     return w, loss
-
-
-
-
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
@@ -107,8 +92,6 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     return w, loss
 
 
-
-
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """L2-regularized logistic regression. Loss without penalty."""
 
@@ -128,9 +111,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     loss = np.mean(np.logaddexp(0, z) - y * z)
 
     return w, loss
-
-
-
 
 
 def train_model(model, y, tx, params, rng=None):
@@ -155,16 +135,23 @@ def train_model(model, y, tx, params, rng=None):
     if model == "ridge":
         return ridge_regression(y, tx, params["lambda_"])
     if model == "mse_gd":
-        return mean_squared_error_gd(y, tx, initial_w, params["max_iters"], params["gamma"])
+        return mean_squared_error_gd(
+            y, tx, initial_w, params["max_iters"], params["gamma"]
+        )
     if model == "mse_sgd":
-        return mean_squared_error_sgd(y, tx, initial_w, params["max_iters"], params["gamma"], rng=rng)
+        return mean_squared_error_sgd(
+            y, tx, initial_w, params["max_iters"], params["gamma"], rng=rng
+        )
     if model == "logistic":
-        return logistic_regression(y, tx, initial_w, params["max_iters"], params["gamma"])
+        return logistic_regression(
+            y, tx, initial_w, params["max_iters"], params["gamma"]
+        )
     if model == "reg_logistic":
-        return reg_logistic_regression(y, tx, params["lambda_"], initial_w, params["max_iters"], params["gamma"])
-    
-    raise ValueError(f"unknown model: {model}")
+        return reg_logistic_regression(
+            y, tx, params["lambda_"], initial_w, params["max_iters"], params["gamma"]
+        )
 
+    raise ValueError(f"unknown model: {model}")
 
 
 def predict_scores(model, tx, w):
@@ -181,5 +168,5 @@ def predict_scores(model, tx, w):
     """
     z = tx @ w
     if model in ("logistic", "reg_logistic"):
-        return 1 / (1 + np.exp(-np.clip(z, -500, 500))) 
+        return 1 / (1 + np.exp(-np.clip(z, -500, 500)))
     return z

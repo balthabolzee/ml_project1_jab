@@ -105,7 +105,9 @@ def fit_preprocessing(
         params (dict): everything transform needs
     """
     if x_train.shape[1] != len(names):
-        raise ValueError(f"x_train has {x_train.shape[1]} columns, got {len(names)} names")
+        raise ValueError(
+            f"x_train has {x_train.shape[1]} columns, got {len(names)} names"
+        )
 
     columns = []
     seen_missing_patterns = set()
@@ -183,7 +185,7 @@ def add_bias(tx):
     Returns:
         tx_bias (np.array): preprocessed features with a bias
     """
-    ones = np.ones((tx.shape[0], 1)) # give the size ()
+    ones = np.ones((tx.shape[0], 1))  # give the size ()
     tx_bias = np.concatenate([ones, tx], axis=1)
 
     return tx_bias
