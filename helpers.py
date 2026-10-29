@@ -26,7 +26,7 @@ def load_csv_data(data_path, sub_sample=False):
         delimiter=",",
         skip_header=1,
         dtype=int,
-        usecols=(1,),
+        usecols=(1, ),
     )
     x_train = np.genfromtxt(
         os.path.join(data_path, "x_train.csv"), delimiter=",", skip_header=1
@@ -70,6 +70,9 @@ def create_csv_submission(ids, y_pred, name):
         writer.writeheader()
         for r1, r2 in zip(ids, y_pred):
             writer.writerow({"Id": int(r1), "Prediction": int(r2)})
+
+
+
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True, rng=None):
@@ -140,5 +143,7 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True, rng=None):
         yield y[start_index:end_index], tx[start_index:end_index]
 
 
+
 def sigmoid(a):
-    return 1 / (1 + np.exp(-np.clip(a, -500, 500)))
+    return 1 / (1 + np.exp(-np.clip(a, -500, 500))) 
+

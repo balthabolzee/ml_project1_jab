@@ -19,9 +19,7 @@ def combinations(indices, d):
         return [()]
     groups = []
     for i in range(len(indices)):
-        for rest in combinations(
-            indices[i + 1 :], d - 1
-        ):  # the other elements come after position i
+        for rest in combinations(indices[i + 1:], d - 1):   # the other elements come after position i
             groups.append((indices[i],) + rest)
     return groups
 
@@ -31,9 +29,7 @@ def feature_names(params):
     out = ["bias"]
     for info in params["columns"]:
         if "categories" in info:
-            out += [
-                f"{info['name']}={c:g}" for c in info["categories"]
-            ]  # one 0/1 column per category
+            out += [f"{info['name']}={c:g}" for c in info["categories"]]  # one 0/1 column per category
         else:
             out.append(info["name"])
             if info["add_flag"]:
@@ -56,7 +52,7 @@ def pick_top(tx_tr, w, top, max_corr=0.9):
     """
     n = len(tx_tr)
     picked = []
-    for j in 1 + np.argsort(-np.abs(w[1:])):  # strongest first, bias excluded
+    for j in 1 + np.argsort(-np.abs(w[1:])):            # strongest first, bias excluded
         # the columns are standardized, so their correlation is the mean of their product
         if all(abs(tx_tr[:, j] @ tx_tr[:, k]) / n <= max_corr for k in picked):
             picked.append(j)
@@ -86,16 +82,12 @@ def add_interactions(tx_tr, tx_val, w, degree=2, top=30, max_corr=0.9, max_gb=3.
     combos = [c for d in range(2, degree + 1) for c in combinations(best, d)]
     gb = 8 * len(tx_tr) * (tx_tr.shape[1] + len(combos)) / 1e9
     if gb > max_gb:
-        raise MemoryError(
-            f"{len(combos)} products -> {gb:.1f} GB training matrix: lower top or degree"
-        )
+        raise MemoryError(f"{len(combos)} products -> {gb:.1f} GB training matrix: lower top or degree")
     p_tr = np.column_stack([np.prod(tx_tr[:, list(c)], axis=1) for c in combos])
     p_val = np.column_stack([np.prod(tx_val[:, list(c)], axis=1) for c in combos])
     mean, std = p_tr.mean(0), p_tr.std(0)
     std[std == 0] = 1
-    return np.hstack([tx_tr, (p_tr - mean) / std]), np.hstack(
-        [tx_val, (p_val - mean) / std]
-    )
+    return np.hstack([tx_tr, (p_tr - mean) / std]), np.hstack([tx_val, (p_val - mean) / std])
 
 
 def numerical_columns(tx_tr):
@@ -112,9 +104,7 @@ def numerical_columns(tx_tr):
         cols (np.array): indices of the numerical columns
     """
     lo, hi = tx_tr.min(axis=0), tx_tr.max(axis=0)
-    binary = ((tx_tr == lo) | (tx_tr == hi)).all(
-        axis=0
-    )  # only two values (or constant)
+    binary = ((tx_tr == lo) | (tx_tr == hi)).all(axis=0)   # only two values (or constant)
     return np.flatnonzero(~binary)
 
 
@@ -142,16 +132,12 @@ def add_polynomial(tx_tr, tx_val, degree=2, w=None, top=None):
     cols = numerical_columns(tx_tr)
     if top is not None:
         if w is None:
-            raise ValueError(
-                "add_polynomial: w is needed to pick the `top` strongest columns"
-            )
+            raise ValueError("add_polynomial: w is needed to pick the `top` strongest columns")
         cols = cols[np.argsort(-np.abs(w[cols]))][:top]
 
     # 2 - (column, power) pairs, skipping the powers that only repeat information
     n_values = [np.unique(tx_tr[:, j]).size for j in cols]
-    powers = [
-        (j, d) for d in range(2, degree + 1) for j, n in zip(cols, n_values) if n > d
-    ]
+    powers = [(j, d) for d in range(2, degree + 1) for j, n in zip(cols, n_values) if n > d]
     if not powers:
         return tx_tr, tx_val
 
@@ -160,6 +146,4 @@ def add_polynomial(tx_tr, tx_val, degree=2, w=None, top=None):
     p_val = np.column_stack([tx_val[:, j] ** d for j, d in powers])
     mean, std = p_tr.mean(0), p_tr.std(0)
     std[std == 0] = 1
-    return np.hstack([tx_tr, (p_tr - mean) / std]), np.hstack(
-        [tx_val, (p_val - mean) / std]
-    )
+    return np.hstack([tx_tr, (p_tr - mean) / std]), np.hstack([tx_val, (p_val - mean) / std])

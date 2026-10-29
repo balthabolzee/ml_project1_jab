@@ -1,6 +1,5 @@
 import sys
-
-sys.path.insert(0, "..")  # also look in the parent folder (the repo root)
+sys.path.insert(0, "..")   # also look in the parent folder (the repo root)
 import numpy as np
 import helpers
 import preprocessing
@@ -32,7 +31,7 @@ def f1_score(y_true, y_pred):
 
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
-    f1 = 2 * (precision * recall) / (precision + recall)
+    f1 = 2 * (precision*recall) / (precision+recall)
 
     return f1
 
@@ -49,14 +48,12 @@ def best_threshold(y_true, scores):
         best_t (float): threshold with the best F1 (predict 1 if score >= best_t)
         best_f1 (float): F1 obtained with that threshold
     """
-    thresholds = np.quantile(
-        scores, np.linspace(0, 1, 101)
-    )  # adaptative thresholds range between 0 and 1 (steps of 0.01)
+    thresholds = np.quantile(scores, np.linspace(0, 1, 101)) # adaptative thresholds range between 0 and 1 (steps of 0.01)
 
     f1_scores = []
 
     for t in thresholds:
-        y_pred = (scores >= t).astype(int)
+        y_pred = (scores>=t).astype(int)
         f1 = f1_score(y_true, y_pred)
 
         f1_scores.append(f1)
@@ -83,11 +80,9 @@ def subsample(x_train, y_train, size, rng):
         x_sub (np.array): `size` distinct random rows of x_train, shape (size, D)
         y_sub (np.array): the matching labels, shape (size,)
     """
-    idx = rng.choice(
-        len(y_train), size=size, replace=False
-    )  # `size` distinct row numbers in 0..N-1 - no replace avoid duplication
+    idx = rng.choice(len(y_train), size=size, replace=False)  # `size` distinct row numbers in 0..N-1 - no replace avoid duplication
 
-    return x_train[idx], y_train[idx]  # same idx for x and y: rows stay aligned
+    return x_train[idx], y_train[idx]   # same idx for x and y: rows stay aligned
 
 
 def split_data(x, y, ratio, rng):
@@ -104,13 +99,13 @@ def split_data(x, y, ratio, rng):
         x_tr, y_tr (np.array): training rows and labels (ratio * N rows)
         x_val, y_val (np.array): validation rows and labels (the rest)
     """
-    cut = int(ratio * len(y))
+    cut = int(ratio*len(y))
 
-    idx = rng.permutation(len(y))  # shuffled row numbers
+    idx = rng.permutation(len(y))   # shuffled row numbers
     idx_tr = idx[:cut]
     idx_val = idx[cut:]
 
-    x_tr, y_tr = x[idx_tr], y[idx_tr]
+    x_tr, y_tr   = x[idx_tr], y[idx_tr]
     x_val, y_val = x[idx_val], y[idx_val]
 
     return x_tr, y_tr, x_val, y_val
@@ -130,14 +125,13 @@ def prepare_features(x_tr, x_val, names):
         tx_val (np.array): validation matrix, same columns, with the training statistics
     """
     params = preprocessing.fit_preprocessing(x_tr, names)
-    tx_tr = preprocessing.add_bias(preprocessing.transform(x_tr, params))
+    tx_tr  = preprocessing.add_bias(preprocessing.transform(x_tr, params))
     tx_val = preprocessing.add_bias(preprocessing.transform(x_val, params))
 
     return tx_tr, tx_val
 
 
 ## CROSS VAL
-
 
 def build_k_indices(y, k_fold, rng):
     """
@@ -170,7 +164,9 @@ def build_k_indices(y, k_fold, rng):
         folds = np.concatenate([pos_parts[i], neg_parts[i]])
         k_indices.append(folds)
 
+
     return k_indices
+
 
 
 def expand_features(tx_tr, tx_val, y_tr, model, params, rng=None):
@@ -202,17 +198,9 @@ def expand_features(tx_tr, tx_val, y_tr, model, params, rng=None):
         w0, _ = implementations.train_model(model, y_tr, tx_tr, params, rng)
 
     # 2 - powers, then products: w0 only ranks the base columns, so the powers are never combined
-    tx_tr, tx_val = features_expansion.add_polynomial(
-        tx_tr, tx_val, poly_degree, w0, poly_top
-    )
-    tx_tr, tx_val = features_expansion.add_interactions(
-        tx_tr,
-        tx_val,
-        w0,
-        inter_degree,
-        params.get("inter_top", 30),
-        params.get("max_corr", 0.9),
-    )
+    tx_tr, tx_val = features_expansion.add_polynomial(tx_tr, tx_val, poly_degree, w0, poly_top)
+    tx_tr, tx_val = features_expansion.add_interactions(tx_tr, tx_val, w0, inter_degree,
+                                                        params.get("inter_top", 30), params.get("max_corr", 0.9))
 
     return tx_tr, tx_val
 
@@ -261,9 +249,7 @@ def cross_validate(x, y, names, k_indices, model, params, rng=None, verbose=True
         w, loss = implementations.train_model(model, y_tr, tx_tr, params, rng)
 
         # 4 - threshold chosen on the training folds, applied to the validation fold
-        best_t, _ = best_threshold(
-            y_tr, implementations.predict_scores(model, tx_tr, w)
-        )
+        best_t, _ = best_threshold(y_tr, implementations.predict_scores(model, tx_tr, w))
         scores = implementations.predict_scores(model, tx_val, w)
         f1 = f1_score(y_val, (scores >= best_t).astype(int))
 
@@ -271,12 +257,11 @@ def cross_validate(x, y, names, k_indices, model, params, rng=None, verbose=True
         thresholds.append(best_t)
         if verbose:
             _, oracle_f1 = best_threshold(y_val, scores)
-            print(
-                f"fold {i}: {tx_tr.shape[1]} columns, loss {loss:.4f}, threshold {best_t:.2f}, "
-                f"F1 {f1:.3f} (oracle {oracle_f1:.3f})"
-            )
+            print(f"fold {i}: {tx_tr.shape[1]} columns, loss {loss:.4f}, threshold {best_t:.2f}, "
+                  f"F1 {f1:.3f} (oracle {oracle_f1:.3f})")
 
     return np.mean(f1s), np.std(f1s), np.mean(thresholds)
+
 
 
 def grid_search(x, y, names, k_indices, model, lambdas, gammas, iters_list, rng=None):
@@ -301,38 +286,24 @@ def grid_search(x, y, names, k_indices, model, lambdas, gammas, iters_list, rng=
 
                 # 1 - evaluate this combination
                 params = {"lambda_": lambda_, "gamma": gamma, "max_iters": max_iters}
-                f1_mean, f1_std, t_mean = cross_validate(
-                    x, y, names, k_indices, model, params, rng=rng, verbose=False
-                )
+                f1_mean, f1_std, t_mean = cross_validate(x, y, names, k_indices, model, params, rng=rng, verbose=False)
 
                 # 2 - store it
                 results.append((lambda_, gamma, max_iters, f1_mean, f1_std, t_mean))
 
-                print(
-                    f"λ={lambda_:g}, γ={gamma:g}, iters={max_iters}: "
-                    f"F1 {f1_mean:.3f} ± {f1_std:.3f}, threshold {t_mean:.2f}"
-                )
+                print(f"λ={lambda_:g}, γ={gamma:g}, iters={max_iters}: "
+                      f"F1 {f1_mean:.3f} ± {f1_std:.3f}, threshold {t_mean:.2f}")
 
     # 3 - best combination = highest mean F1
-    f1_means = np.array(results)[:, 3]  # f1_means = [row[3] for row in results]
+    f1_means = np.array(results)[:, 3] # f1_means = [row[3] for row in results]
     best = results[np.argmax(f1_means)]
 
     return results, best
 
 
-def grid_search_expansion(
-    x,
-    y,
-    names,
-    k_indices,
-    model,
-    params,
-    poly_degrees=(1,),
-    poly_tops=(None,),
-    inter_degrees=(1,),
-    inter_tops=(30,),
-    rng=None,
-):
+
+def grid_search_expansion(x, y, names, k_indices, model, params,
+                          poly_degrees=(1,), poly_tops=(None,), inter_degrees=(1,), inter_tops=(30,), rng=None):
     """
     Grid search of the feature expansion (see expand_features) for one model with fixed hyperparameters.
 
@@ -356,47 +327,26 @@ def grid_search_expansion(
                 for inter_top in inter_tops:
 
                     # 1 - a top is meaningless without its expansion: test it once, skip the duplicates
-                    key = (
-                        poly_degree,
-                        poly_top if poly_degree >= 2 else None,
-                        inter_degree,
-                        inter_top if inter_degree >= 2 else None,
-                    )
+                    key = (poly_degree, poly_top if poly_degree >= 2 else None,
+                           inter_degree, inter_top if inter_degree >= 2 else None)
                     if key in seen:
                         continue
                     seen.add(key)
 
                     # 2 - evaluate this combination
-                    run_params = dict(
-                        params,
-                        poly_degree=key[0],
-                        poly_top=key[1],
-                        inter_degree=key[2],
-                        inter_top=key[3],
-                    )
-                    f1_mean, f1_std, t_mean = cross_validate(
-                        x,
-                        y,
-                        names,
-                        k_indices,
-                        model,
-                        run_params,
-                        rng=rng,
-                        verbose=False,
-                    )
+                    run_params = dict(params, poly_degree=key[0], poly_top=key[1], inter_degree=key[2], inter_top=key[3])
+                    f1_mean, f1_std, t_mean = cross_validate(x, y, names, k_indices, model, run_params, rng=rng, verbose=False)
 
                     # 3 - store it
                     results.append((*key, f1_mean, f1_std, t_mean))
-                    print(
-                        f"poly {key[0]} (top {key[1]}), inter {key[2]} (top {key[3]}): "
-                        f"F1 {f1_mean:.3f} ± {f1_std:.3f}, threshold {t_mean:.2f}",
-                        flush=True,
-                    )
+                    print(f"poly {key[0]} (top {key[1]}), inter {key[2]} (top {key[3]}): "
+                          f"F1 {f1_mean:.3f} ± {f1_std:.3f}, threshold {t_mean:.2f}", flush=True)
 
     # 4 - best combination = highest mean F1
     best = max(results, key=lambda r: r[4])
 
     return results, best
+
 
 
 def compare_configs(x, y, names, k_indices, configs, seed=42):
@@ -414,25 +364,13 @@ def compare_configs(x, y, names, k_indices, configs, seed=42):
     """
     results = []
     for model, params in configs:
-        f1_mean, f1_std, t_mean = cross_validate(
-            x,
-            y,
-            names,
-            k_indices,
-            model,
-            params,
-            rng=np.random.default_rng(seed),
-            verbose=False,
-        )
+        f1_mean, f1_std, t_mean = cross_validate(x, y, names, k_indices, model, params,
+                                                 rng=np.random.default_rng(seed), verbose=False)
         results.append((model, params, f1_mean, f1_std, t_mean))
-        print(
-            f"{model:14} {str(params):50} F1 {f1_mean:.3f} ± {f1_std:.3f}   threshold {t_mean:.3g}"
-        )
+        print(f"{model:14} {str(params):50} F1 {f1_mean:.3f} ± {f1_std:.3f}   threshold {t_mean:.3g}")
 
-    best = max(results, key=lambda r: r[2])  # row with the highest f1_mean
+    best = max(results, key=lambda r: r[2])     # row with the highest f1_mean
     model, params, f1_mean, f1_std, t_mean = best
-    print(
-        f"\nbest: {model} {params} → F1 {f1_mean:.3f} ± {f1_std:.3f}, threshold {t_mean:.3g}"
-    )
-
+    print(f"\nbest: {model} {params} → F1 {f1_mean:.3f} ± {f1_std:.3f}, threshold {t_mean:.3g}")
+    
     return results, best
